@@ -246,14 +246,11 @@ db.movies.find({ $nor: [{ "rating.average": { $lt: 5 } }, { "rating.average": { 
 db.movies.find({ $and: [{ "rating.average": { $gt: 9 } }, { "genres": "drama" }] }) //# this is for and which we can add multiple conditions
 db.movies.find({ "rating.average": { $gt: 9 } }, { "genres": "drama" }) //# here we have the same condiotion as AND. becoause by default mongo will consider AND operation
 //* and is better to use, if we pass same field 2 times, it will give wrong output
+db.myCollection.find({ field: { $ne: "value" } }) //# not equality operator - $ne.
+db.movies.find({ runtime: { $not: { $eq: 60 } } }) //# this is same as db.myCollection.find({ field: { $ne: "value" } }) //# not equality operator - $ne.
 
 
-
-my test
-
-
-
-
+//* ELEMENT operators
 
 
 
