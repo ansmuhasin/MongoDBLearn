@@ -252,5 +252,31 @@ db.movies.find({ runtime: { $not: { $eq: 60 } } }) //# this is same as db.myColl
 
 //* ELEMENT operators
 
+db.users.find({ age: { $exists: true } })   //# we can search all the document which have a specific field available $exists 
+db.users.find({ age: { $exists: true, $gt: 20 } }) //# here we can check if the user have age field and the value is greater than 20
+//# by using true we can search for document which doesnt have this field 
+db.users.find({ age: { $exists: true, $ne: null } }) //# here we check if the field exists and the value is not null
+db.users.find({ age: { $type: "number" } }) //# we can check the type of the field by using $type
+db.users.find({ age: { $type: ["number", "string"] } }) //# we can check multiple types
+//* $rejex can be used for finding patterns , but is not having a good performance, patterns always write between //
+
+db.movies.find({ summar: { $regex: /musical/ } })  //# we can search for contained search in texts, not an efficiant way
+//* $expR can be used for expressions
+db.movies.find({ $expr: { $gt: ["$volume", "$target"] } })  //# here we need to mention the fieldname using $, then only it will be considered as a field , or it might consider it as a value.
+db.sales.find({ $expr: { $gt: [{ $cond: { if: { $gte: ["Svolume", 190] }, then: { $subtract: ["$volume", 10] }, else: "$volume" } }, "$target"] } }).pretty()  //# comllex function
+// if the value is greater than 190 and the diffreence is 10 with the taget. else the voslume is greater than target
+//* searching with arrays
+//* for arrays we can use $size operator
+db.users.find({ hobbies: { $size: 3 } })
+db.movies.find({ genre: { $all: ["action", "thriller"] } }) //# in this case, it will not exactly search for action and thriller, it will search for action and thriller, but it douesnt care about other values
+//* if we want to match the same  element in the arrayList in the finding operation we need to use $elemMatch
+db.users.find({ hobbies: { $elemMatch: { title: "Sports", frequency: { $gte: 3 } } } }).pretty() //db.users.find({$and: [{"hobbies.title": "Sports"}, {"hobbies.frequency": {$gte: 3}}]}).pretty() this will not work properly
+
+
+
+
+
+
+
 
 
