@@ -603,6 +603,7 @@ db.movies.find({ rating: 9 }, { genres: { $slice: [1, 2] } }) //# here we can li
 https://docs.mongodb.com/manual/reference/operator/query/
 
 //! Update Operations
+https://docs.mongodb.com/manual/tutorial/update-documents/
 users.json
 db.users.updateOne({ _id: "" }, { $set: { hobbies: [{ name: "", frequency: 1 }, { name: "", frequency: 1 }] } }) //# we can specify the item that we need to update.
 db.users.updateMany({ _id: "" }, { $set: { hobbies: [{ name: "", frequency: 1 }, { name: "", frequency: 1 }] } }) //# updateMany works the same
@@ -615,6 +616,50 @@ db.users.updateOne({ _id: "" }, { $inc: { age: -1 }, $set: { isSporty: true } })
 db.users.updateOne({ _id: "" }, { $inc: { age: 2 }, $set: { age: 30 } }) //! this will throws error, we cannot pass two same field in $inc and $set
 db.users.updateOne({ _id: "" }, { $min: { age: 35 } }) //# if the input value is in $min operator is less than the existing value, then only it will update
 db.users.updateOne({ _id: "" }, { $max: { age: 35 } }) //# if the input value is in $max operator is greater than the existing value, then only it will update
+db.users.updateOne({ _id: "" }, { mul: { age: 1.1 } }) //# this multiply age with 1.1. $mul is a multiply operator
+db.users.updateOne({ _id: "" }, { unset: { phone: "" } }) //# if qwe pass $unset operator with a field name, it will remove or drop that specific field, it doesnt matyter what value we pass as the input, we can pass empty string
+db.users.updateOne({ _id: "" }, { rename: { age: "totalAge" } }) //# we can rename an existing field by using $rename operator, we can pass the field name and the value as the new name
+db.users.updateOne({name: "Maria"}, {$set: {age: 29, hobbies: [{title: "Good food", frequency: 3}],isSporty: true}}) //! this will not do anything, becouse it could not find any item
+db.users.updateOne({name: "Maria"}, {$set: {age: 29, hobbies: [{title: "Good food", frequency: 3}],isSporty: true}},{$upsert:true}) //# here we can insert new value if we cant find that item, even it will insert the filter value as well. in this case, it is maria
+
+db.users.updateMany({hobbies: {$elemMatch: {title: "Sports", frequency: {$gte: 3}}}}, {$set: {"hobbies.$.highFrequency": 4}})  //# here we find only one item using the filter in the array, then we update only to that specific element in the array // hobbies.$ will select the specific array element
+db.users.updateMany({hobbies: {$elemMatch: {"hobbies.frequency": {$gte: 3}}}}, {$set: {"hobbies.$.goodFrequency": true}})  //# hbut here it will only update one document in the array and it is not enough
+db.users.updateMany({hobbies: {$elemMatch: {"hobbies.frequency": {$gte: 3}}}}, {$set: {"hobbies.$[].goodFrequency": true}})  //# here we can update for every element in the array document using $[]
+db.users.updateMany({hobbies: {$elemMatch: {"hobbies.frequency": {$gte: 3}}}}, {$set: {"hobbies.$[el].goodFrequency": true}},{arrayFilters:[{"el.frequency":{gt:2}}]})  //# if we want to update items in array which have specific filter cryteria. we need initialise a variable inside the array and we need to check the condition again in a new document as a argument with operator $arrayFilter
+db.users.updateMany({name:"maria"},{$push:{hobbies:{name:"",frequency:1}}})  //# we can insert new records to an existing array using $push
+db.users.updateMany({name:"maria"},{$push:{hobbies:{$each:[{name:"",frequency:1},{name:"",frequency:2}]}}})  //# for inserting multiple documents, we need to add $each operator.
+db.users.updateMany({name:"maria"},{$push:{hobbies:{$each:[{name:"",frequency:1},{name:"",frequency:2}],$sort:{frequency:1}}}})  //# we can even sort the everything including the existing record(existing record will also be modified)
+db.users.updateMany({name:"maria"},{$pull:{hobbies:{name:"",frequency:1}}}) //# this will remove one item from the array which match the condition
+db.users.updateMany({name:"maria"},{$pop:{hobbies:1}}) //# we can remove the last or first element from the list. 1 is for last element and -1 for first element
+
+db.users.updateMany({name:"maria"},{$addToSet:{hobbies:{name:"",frequency:1}}}) //# we can add value to the array, but if the value already exists, it will not add. repeatation will not happen in this case
+
+//! Delete Operation
+https://docs.mongodb.com/manual/tutorial/remove-documents/
+//* All filteration that learned in filter can  be used in delete as well
+
+db.users.updateMany({name:"maria"}) //# this will delete the specific items that we found we filetered
+db.users.updateMany({name:"maria",age:{$gt:30}}) //# this will delete the specific items that we found we filetered, we can use 
+db.users.updateMany({}) //# everything is deleted in the collection
+db.users.drop()
+db.dropDatabase()
+
+//! Indexers
+//* So it's not an ordered list of the documents, just of the values for the field for which you created that index
+//* So it can very efficiently go through that index and then find the matching products because of that ordering
+//* and because of that pointer, every element in this index has, so mongodb finds the value for this query
+//* and then finds the related documents it can return this,
+//* so it's this direct access that mongodb can use here and that speeds up your queries.
+
+
+
+
+
+
+
+
+
+
 
 
 
