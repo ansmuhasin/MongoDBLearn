@@ -131,6 +131,7 @@ db.passengers.insertMany([
   }
 ])  //# it can be used to see more
 
+db.passengers.find() //# this will return first 20 records and we  need to write it for more, basicall y the result is not t\"he actu book\"al data, instead a pointer.
 db.passengers.find() //# this will return first 20 records and we  need to write it for more, basicall y the result is not the actual data, instead a pointer.
 db.passengers.find().toArray() //# this will return all the result.
 
@@ -619,27 +620,27 @@ db.users.updateOne({ _id: "" }, { $max: { age: 35 } }) //# if the input value is
 db.users.updateOne({ _id: "" }, { mul: { age: 1.1 } }) //# this multiply age with 1.1. $mul is a multiply operator
 db.users.updateOne({ _id: "" }, { unset: { phone: "" } }) //# if qwe pass $unset operator with a field name, it will remove or drop that specific field, it doesnt matyter what value we pass as the input, we can pass empty string
 db.users.updateOne({ _id: "" }, { rename: { age: "totalAge" } }) //# we can rename an existing field by using $rename operator, we can pass the field name and the value as the new name
-db.users.updateOne({name: "Maria"}, {$set: {age: 29, hobbies: [{title: "Good food", frequency: 3}],isSporty: true}}) //! this will not do anything, becouse it could not find any item
-db.users.updateOne({name: "Maria"}, {$set: {age: 29, hobbies: [{title: "Good food", frequency: 3}],isSporty: true}},{$upsert:true}) //# here we can insert new value if we cant find that item, even it will insert the filter value as well. in this case, it is maria
+db.users.updateOne({ name: "Maria" }, { $set: { age: 29, hobbies: [{ title: "Good food", frequency: 3 }], isSporty: true } }) //! this will not do anything, becouse it could not find any item
+db.users.updateOne({ name: "Maria" }, { $set: { age: 29, hobbies: [{ title: "Good food", frequency: 3 }], isSporty: true } }, { $upsert: true }) //# here we can insert new value if we cant find that item, even it will insert the filter value as well. in this case, it is maria
 
-db.users.updateMany({hobbies: {$elemMatch: {title: "Sports", frequency: {$gte: 3}}}}, {$set: {"hobbies.$.highFrequency": 4}})  //# here we find only one item using the filter in the array, then we update only to that specific element in the array // hobbies.$ will select the specific array element
-db.users.updateMany({hobbies: {$elemMatch: {"hobbies.frequency": {$gte: 3}}}}, {$set: {"hobbies.$.goodFrequency": true}})  //# hbut here it will only update one document in the array and it is not enough
-db.users.updateMany({hobbies: {$elemMatch: {"hobbies.frequency": {$gte: 3}}}}, {$set: {"hobbies.$[].goodFrequency": true}})  //# here we can update for every element in the array document using $[]
-db.users.updateMany({hobbies: {$elemMatch: {"hobbies.frequency": {$gte: 3}}}}, {$set: {"hobbies.$[el].goodFrequency": true}},{arrayFilters:[{"el.frequency":{gt:2}}]})  //# if we want to update items in array which have specific filter cryteria. we need initialise a variable inside the array and we need to check the condition again in a new document as a argument with operator $arrayFilter
-db.users.updateMany({name:"maria"},{$push:{hobbies:{name:"",frequency:1}}})  //# we can insert new records to an existing array using $push
-db.users.updateMany({name:"maria"},{$push:{hobbies:{$each:[{name:"",frequency:1},{name:"",frequency:2}]}}})  //# for inserting multiple documents, we need to add $each operator.
-db.users.updateMany({name:"maria"},{$push:{hobbies:{$each:[{name:"",frequency:1},{name:"",frequency:2}],$sort:{frequency:1}}}})  //# we can even sort the everything including the existing record(existing record will also be modified)
-db.users.updateMany({name:"maria"},{$pull:{hobbies:{name:"",frequency:1}}}) //# this will remove one item from the array which match the condition
-db.users.updateMany({name:"maria"},{$pop:{hobbies:1}}) //# we can remove the last or first element from the list. 1 is for last element and -1 for first element
+db.users.updateMany({ hobbies: { $elemMatch: { title: "Sports", frequency: { $gte: 3 } } } }, { $set: { "hobbies.$.highFrequency": 4 } })  //# here we find only one item using the filter in the array, then we update only to that specific element in the array // hobbies.$ will select the specific array element
+db.users.updateMany({ hobbies: { $elemMatch: { "hobbies.frequency": { $gte: 3 } } } }, { $set: { "hobbies.$.goodFrequency": true } })  //# hbut here it will only update one document in the array and it is not enough
+db.users.updateMany({ hobbies: { $elemMatch: { "hobbies.frequency": { $gte: 3 } } } }, { $set: { "hobbies.$[].goodFrequency": true } })  //# here we can update for every element in the array document using $[]
+db.users.updateMany({ hobbies: { $elemMatch: { "hobbies.frequency": { $gte: 3 } } } }, { $set: { "hobbies.$[el].goodFrequency": true } }, { arrayFilters: [{ "el.frequency": { gt: 2 } }] })  //# if we want to update items in array which have specific filter cryteria. we need initialise a variable inside the array and we need to check the condition again in a new document as a argument with operator $arrayFilter
+db.users.updateMany({ name: "maria" }, { $push: { hobbies: { name: "", frequency: 1 } } })  //# we can insert new records to an existing array using $push
+db.users.updateMany({ name: "maria" }, { $push: { hobbies: { $each: [{ name: "", frequency: 1 }, { name: "", frequency: 2 }] } } })  //# for inserting multiple documents, we need to add $each operator.
+db.users.updateMany({ name: "maria" }, { $push: { hobbies: { $each: [{ name: "", frequency: 1 }, { name: "", frequency: 2 }], $sort: { frequency: 1 } } } })  //# we can even sort the everything including the existing record(existing record will also be modified)
+db.users.updateMany({ name: "maria" }, { $pull: { hobbies: { name: "", frequency: 1 } } }) //# this will remove one item from the array which match the condition
+db.users.updateMany({ name: "maria" }, { $pop: { hobbies: 1 } }) //# we can remove the last or first element from the list. 1 is for last element and -1 for first element
 
-db.users.updateMany({name:"maria"},{$addToSet:{hobbies:{name:"",frequency:1}}}) //# we can add value to the array, but if the value already exists, it will not add. repeatation will not happen in this case
+db.users.updateMany({ name: "maria" }, { $addToSet: { hobbies: { name: "", frequency: 1 } } }) //# we can add value to the array, but if the value already exists, it will not add. repeatation will not happen in this case
 
 //! Delete Operation
 https://docs.mongodb.com/manual/tutorial/remove-documents/
 //* All filteration that learned in filter can  be used in delete as well
 
-db.users.updateMany({name:"maria"}) //# this will delete the specific items that we found we filetered
-db.users.updateMany({name:"maria",age:{$gt:30}}) //# this will delete the specific items that we found we filetered, we can use 
+db.users.updateMany({ name: "maria" }) //# this will delete the specific items that we found we filetered
+db.users.updateMany({ name: "maria", age: { $gt: 30 } }) //# this will delete the specific items that we found we filetered, we can use 
 db.users.updateMany({}) //# everything is deleted in the collection
 db.users.drop()
 db.dropDatabase()
@@ -650,19 +651,67 @@ db.dropDatabase()
 //* and because of that pointer, every element in this index has, so mongodb finds the value for this query
 //* and then finds the related documents it can return this,
 //* so it's this direct access that mongodb can use here and that speeds up your queries.
-
 
+db.contacts.explain("exexutionStatus").find({ age: { $gt: 30 } })   //# by using explain we can know how the execution went
 
+db.contacts.createIndex({ "dob.age": 1 }) //# we can add indexes using this format. 1 for ascending and -1 for descending
+db.contacts.dropIndex({ "dob.age": 1 }) //# we can drop indexes using this format. 1 for ascending and -1 for descending
+//* If you have a dataset where your queries typically only return fractions, like 10 or 20 percent or lower than that of the documents, then indexes will almost certainly always speed it up. 
+//* If you've got a lot of queries that give you back all the documents or close to all the documents, indexes can't do that much work for you
+db.contacts.createIndex({ "dob.age": 1, gender: 1 }) //# we can add compound indexes using this format. 1 for ascending and -1 for descending
+//* if we create compound index, indexer will work when we search with both items and first item
+db.contacts.explain().find({ age: { $gt: 30 }, gender: "male" })   //# here index will use for searching, here order matters
+db.contacts.explain().find({ age: { $gt: 30 } })   //# here as well
+db.contacts.explain().find({ gender: "male" })   //# here index will not use for searching
+//* indexers can be used to sort the dataas well
 
+db.contacts.getIndexes() //# this will give information about the indexes
+//# _id is a auto created index by mongo
 
+//* we can create a unique value index as well (like _id)
+db.contacts.explain().find({ email: 1 }, { unique: true })   //#  here we make the field unique, so that the value cannot repeat
+db.contacts.createIndex({ "dob.age": 1 }, { partialFilterExpression: { "dob.age": { $gt: 60 } } }) //# we can again narrow down the index by some values, but to use this index while finding, we still need to mention the search criteria.
 
+//* if we want to add unique index to non nullable values, we can do it
+db.contacts.createIndex({ email: 1 }, { unique: true, partialFilterExpression: { email: { $exists: true } } }) //# now we can add value with null
 
+//* time to live index | we can mention when the record should auto delete, but this functionality only available for date field
+db.contacts.createIndex({ craetedAt: 1 }, { expireAfterSeconds: 10 }) //# new document will auto delete after 10 seconds, it doeesnt work in compound indexes
 
+//* Quary diagnose
+explain("executionStats")
+explain("allPlansExecution")
+//* things to examine
+millisecondProcessTime
+IXSCAN, COLLSCAN
+// #No of key in index examined
+// #No of documents examined
+// #No of documents returned
+//* covered query | if we only return the indexed field only, then the execution is very fast, that it doesnt need to examine the documents
+//* mongodb will try to find the best plan to fetch the data and make it as the winning plan. and this plan will be cached, so next time it will use it next time
+//* if we insert 1000 records, then the cache will be cleared, or if we recreated the index,  if we add other indexes, or restart the mongo db server
 
+//* text indexes are a special indexes for texts, using $rejex will slow down the fetching
+//* text indexers will take all the words and put inside a array of strings and remove words like "is, or as", only stores key values
+db.products.createIndex({ description: "text" }) //# we need to add a special keywork "text" for text index
+db.products.find({ $text: { $search: "awesome" } }).pretty()  //# weneed to search text index like this
+db.products.find({ $text: { $search: "\"awesome book\"" } }).pretty()  //# if we need to find an exact phrace, we need to put the sentance in double qoutes
 
+db.products.find({ $text: { $search: "awesome t-shirt" } }, { score: { $meta: "textScore" } }).pretty()  //# $meta:"textScore" is a special operator, we can get the score of relation , if we can sort it , we will get most related output first
+db.products.find({ $text: { $search: "awesome t-shirt" } }, { score: { $meta: "textScore" } }).sort({ score: { $meta: "textScore" } }).pretty()  //# $meta:"textScore" is a special operator, we can get the score of relation , if we can sort it , we will get most related output first
 
+//* we can have only one textIndex and we can merge two colums
+db.products.createIndex({ title: "text", description: "text" }) //# we can merge 2 text indexes
 
+db.products.find({ $text: { $search: "awesome - t-shirts" } }).pretty() //# now we can exclude t-shirts , but we can search foe awesome
+db.products.createIndex({ title: "text", description: "text" }, { default_language: "english" }) //# we can set language
+db.products.createIndex({ title: "text", description: "text" }, { weights: { title: 1, description: 10 } }) //# description is 10 times weighter than title, this will change the score
 
+db.products.find({ $text: { $search: "awesome", $caseSensitive: true } }).pretty()  //# we can set the case sensitive as well
+
+//* building indexes - Foreground | Background
+//* while creating an index, it will lock the collection and take time.
+db.products.createIndex({ description: "text" }, { background: true }) //# we can make the index creation in the background
 
 
 
