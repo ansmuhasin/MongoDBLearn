@@ -135,17 +135,17 @@ db.passengers.find() //# this will return first 20 records and we  need to write
 db.passengers.find().toArray() //# this will return all the result.
 
 db.passengers.find().forEach((element) => { printjson(element) }); //# we can foreach element and do some functionality to it
-//# this is called projection
 db.passengers.find({}, { name: 1 })  //# we need to pass an empty filter and then we need to say that name to include. but _id will be returnred by default. for that we need to explicitly tell to not include
 db.passengers.find({}, { name: 1, _id: 0 })
+//# this is called projection
 //# embedded document - It is nesting of data inside document.
 //# we can have upto 100 nestings inside the document
 //# maximum data size for a document is 16 MB's
 db.flightData.updateMany({}, { set: { status: { descriptoin: "on-time", lastUpdated: "1hour ago" } } })
 //# arrays are another document type
-db.passengers.updateMany({ name: "albert" }, { set: { status: { hobbies: ["music", "cooking"] } } })  //# we can pass multiple values using array.
+db.passengers.updateMany({ name: "albert" }, { set: { hobbies: ["music", "cooking"] } })  //# we can pass multiple values using array.
 db.passengers.findOne({ name: "albert" }).hobbies  //# this will only return hobbies
-db.passengers.find({ hobbies: "cooking" })  //# this will return hobbies which have dancing..
+db.passengers.find({ hobbies: "cooking" })  //# this will return hobbies which have cooking..
 
 //# for finding data inside nested document
 db.flightData.find({ "status.description": "on-time" }) //# in this case, we need to pass the key inside a string.
@@ -308,13 +308,13 @@ db.users.updateMany({ _id: "" }, { $set: { age: 25, phoneNumber: 89384939 } }) /
 
 db.users.updateOne({ _id: "" }, { $inc: { age: 2 } }) //# This will increment age by 2
 db.users.updateOne({ _id: "" }, { $inc: { age: -1 } }) //# This will decrement age by 1
-db.users.updateOne({ _id: "" }, { $inc: { age: -1 }, $set: { isSporty: true } }) //# we can use both onc and set operTOR
+db.users.updateOne({ _id: "" }, { $inc: { age: -1 }, $set: { isSporty: true } }) //# we can use both inc and set operTOR
 db.users.updateOne({ _id: "" }, { $inc: { age: 2 }, $set: { age: 30 } }) //! this will throws error, we cannot pass two same field in $inc and $set
 db.users.updateOne({ _id: "" }, { $min: { age: 35 } }) //# if the input value is in $min operator is less than the existing value, then only it will update
 db.users.updateOne({ _id: "" }, { $max: { age: 35 } }) //# if the input value is in $max operator is greater than the existing value, then only it will update
 db.users.updateOne({ _id: "" }, { mul: { age: 1.1 } }) //# this multiply age with 1.1. $mul is a multiply operator
-db.users.updateOne({ _id: "" }, { unset: { phone: "" } }) //# if qwe pass $unset operator with a field name, it will remove or drop that specific field, it doesnt matyter what value we pass as the input, we can pass empty string
-db.users.updateOne({ _id: "" }, { rename: { age: "totalAge" } }) //# we can rename an existing field by using $rename operator, we can pass the field name and the value as the new name
+db.users.updateOne({ _id: "" }, { $unset: { phone: "" } }) //# if qwe pass $unset operator with a field name, it will remove or drop that specific field, it doesnt matyter what value we pass as the input, we can pass empty string
+db.users.updateOne({ _id: "" }, { $rename: { age: "totalAge" } }) //# we can rename an existing field by using $rename operator, we can pass the field name and the value as the new name
 db.users.updateOne({ name: "Maria" }, { $set: { age: 29, hobbies: [{ title: "Good food", frequency: 3 }], isSporty: true } }) //! this will not do anything, becouse it could not find any item
 db.users.updateOne({ name: "Maria" }, { $set: { age: 29, hobbies: [{ title: "Good food", frequency: 3 }], isSporty: true } }, { $upsert: true }) //# here we can insert new value if we cant find that item, even it will insert the filter value as well. in this case, it is maria
 
@@ -439,6 +439,7 @@ db.areas.find({ area: { $geoIntersects: { $geometry: { type: "Point", coordinate
 db.places.find({ location: { $geoWithin: { $centerSphere: [[-122.476, 37.771], 1 / 6378.1] } } }) //# now we can find the location in a certain radius, but it gives an unsorted list. but $near operator gives a sorted list. and we need to convert the KM or miles to radians as a second parameter
 
 //! Aggregation Framework
+https://docs.mongodb.com/manual/core/aggregation-pipeline/
 //* Retrieving the data in a structured and efficient way
 //* aggregate function takes an array becoause we take a series of steps
 
@@ -552,6 +553,227 @@ db.friends.aggregate([
     }
   }
 ]).pretty();
+https://docs.mongodb.com/manual/reference/operator/aggregation/cond/
+friends.json // trying to show the max score and name from the array of scores
+db.friends.aggregate([
+  { $unwind: "$examScores" }, //# we can use unwrap here
+  { $project: { _id: 1, name: 1, age: 1, score: "$examScores.score" } },
+  { $sort: { score: -1 } },
+  { $group: { _id: "$_id", name: { $first: "$name" }, maxScore: { $max: "$score" } } }, //# $first will select the first element $max will find the maximum value
+  { $sort: { maxScore: -1 } }
+]).pretty();
+
+//* Buckets - we can define some boundaries and distribute the values through those groups
+db.persons
+  .aggregate([
+    {
+      $bucket: {
+        groupBy: '$dob.age',
+        boundaries: [18, 30, 40, 50, 60, 120],
+        output: {
+          numPersons: { $sum: 1 },
+          averageAge: { $avg: '$dob.age' }
+        }
+      }
+    }
+  ])
+  .pretty();
+
+db.persons.aggregate([
+  {
+    $bucketAuto: {                   //# this will auto generate a bucket
+      groupBy: '$dob.age',
+      buckets: 5,          //# this is number of boundaries we want
+      output: {
+        numPersons: { $sum: 1 },
+        averageAge: { $avg: '$dob.age' }
+      }
+    }
+  }
+]).pretty();
+
+//! order of aggregate matters !!!!!!!!
+db.persons.aggregate([
+  { $match: { gender: "male" } },
+  { $project: { _id: 0, gender: 1, name: { $concat: ["$name.first", " ", "$name.last"] }, birthdate: { $toDate: "$dob.date" } } },
+  { $sort: { birthdate: 1 } },
+  { $skip: 10 },
+  { $limit: 10 }
+]).pretty();
+https://docs.mongodb.com/manual/core/aggregation-pipeline-optimization/
+
+//* $out aggregate for saving a specific aggregate - I think it works more like a Stored Procedure
+db.persons.aggregate([
+  {
+    $project: {
+      _id: 0,
+      name: 1,
+      email: 1,
+      birthdate: { $toDate: '$dob.date' },
+      age: "$dob.age",
+      location: {
+        type: 'Point',
+        coordinates: [
+          {
+            $convert: {
+              input: '$location.coordinates.longitude',
+              to: 'double',
+              onError: 0.0,
+              onNull: 0.0
+            }
+          },
+          {
+            $convert: {
+              input: '$location.coordinates.latitude',
+              to: 'double',
+              onError: 0.0,
+              onNull: 0.0
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    $project: {
+      gender: 1,
+      email: 1,
+      location: 1,
+      birthdate: 1,
+      age: 1,
+      fullName: {
+        $concat: [
+          { $toUpper: { $substrCP: ['$name.first', 0, 1] } },
+          {
+            $substrCP: [
+              '$name.first',
+              1,
+              { $subtract: [{ $strLenCP: '$name.first' }, 1] }
+            ]
+          },
+          ' ',
+          { $toUpper: { $substrCP: ['$name.last', 0, 1] } },
+          {
+            $substrCP: [
+              '$name.last',
+              1,
+              { $subtract: [{ $strLenCP: '$name.last' }, 1] }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  { $out: "transformedPersons" }     //# we can use $out keyword to do it
+])
+
+
+//! Numbers in MongoDB
+//* Integers(int32) - full numbers
+//* Longs(int64) - full numbers
+//* Doubles(64bit) - number with decimal places - decimal values are approximated
+//* High Precision Doubles(128bit) - number with decimal places - decimal values are with high precisions
+//* default type of number in mongoShell(javascript as well) is double so 1 is 1.00 
+//* we can use NumberInt(10) as well .this takes lower size
+//* we can use NumberLong(10) as well .this takes lower size
+
+NumberLong("687878787887878") //# we should pass as a string, for numberInt as well // limitation of javascript
+numberDecimal() //# High Precision Doubles(128bit), more size is preserved for this type
+https://stackoverflow.com/questions/618535/difference-between-decimal-float-and-double-in-net
+https://social.msdn.microsoft.com/Forums/vstudio/en-US/d2f723c7-f00a-4600-945a-72da23cbc53d/can-anyone-explain-clearly-about-float-vs-decimal-vs-double-?forum=csharpgeneral
+https://docs.mongodb.com/manual/tutorial/model-monetary-data/
+
+
+//! security in MongoDB
+
+//* Authorization and authontication
+//* Transport encryption
+//* encryption in rest
+//* auditing
+//* server and network config setup
+//* backup and updates
+
+//* Authorization and authontication
+//# Authentication is all about identifying users in your database, authorization on the other hand is all about identifying what these users may then actually do in the database,
+//# user can have roles and previlages
+//# previlages can have resources(db or collections) and actions(update, delete)
+
+createUser()
+updateUser()
+
+
+//# switch to admin database
+//# create user
+db.createUser({ user: "max", pwd: "ppp", roles: ["userAdminAnyDatabase"] })   //# to create a db
+
+db.auth("username", "password")
+
+//* buildin roles
+//# database Userm - read and readWrite roles
+//# database admin - dbAdmin, userAdmin, dbOwner
+//# All database Roles - readAnyDatabase.readWriteAnyDatabase,userAdminAnyDatabase,dbAdminAnyDatabase
+//# Cluster Admin - clusterManager,clusterMonitor ,hostManager ,clusterAdmin 
+//# Backup/ Restore - backup ,restore 
+//# superUser - dbOwner (admin),userAdmin (admin),userAdminAnyDatabase, 
+
+//* mong -u username -p password --authenticationDatabase admin(we can specify the db) --- for login
+
+
+//* readWrite role will by default create the user for the selected DB, not for every db
+
+db.updateUser("username", { roles: ["readWrite", { role: "readWrite", db: "anotherdbname" }] }) //# we can give access to another db as well
+
+
+//* transport Encryption :(
+//* encryption at rest - storage encryption - only for pro user :( , but we can encrypt specific fields, like password
+
+// Official "Encryption at Rest" Docs: https://docs.mongodb.com/manual/core/security-encryption-at-rest/
+
+// Official Security Checklist: https://docs.mongodb.com/manual/administration/security-checklist/
+
+// What is SSL/ TLS? => https://www.acunetix.com/blog/articles/tls-security-what-is-tls-ssl-part-1/
+
+// Official MongoDB SSL Setup Docs: https://docs.mongodb.com/manual/tutorial/configure-ssl/
+
+// Official MongoDB Users & Auth Docs: https://docs.mongodb.com/manual/core/authentication/
+
+// Official Built-in Roles Docs: https://docs.mongodb.com/manual/core/security-built-in-roles/
+
+// Official Custom Roles Docs: https://docs.mongodb.com/manual/core/security-user-defined-roles/
+
+
+//! performance
+//* capped database - it will cler the old documents, after the limited size
+db.createCollection("name", { capped: true, size: 1000, max: 3 }) //# size is in bytes, maz is the maximum number of documents
+
+//* replica sets - we can create multiple nodes (secondary nodes) which iss like another server, and the data insertion will happen asynchronosly in these nodes
+//* if primary server became offline, we can use secondary server as backup and keep the application running
+//* or we can use this servers to improve performance, we can do writing from primary server and reading from the secondary server
+https://docs.mongodb.com/manual/replication/
+
+
+//*
+//* and that is really important to understand. With sharding, you have multiple computers who all run mongodb servers but these serverss don't work standalone but work together and split up the available data, so the data is distributed across your shards, not replicated.
+
+//* sharding -- adding more storages
+https://docs.mongodb.com/manual/sharding/
+
+//! Transactions
+//* we need mongoDB 4 for  transactions and replica sets as well
+const session = db.getMongo().startSession() //# created a session
+
+const postsColl = session.getDatabase("blog").posts //# selected db using the session
+const usersColl = session.getDatabase("blog").users
+session.startTransaction() //# started the transactions
+
+usersColl.deleteOne({ _id: ObjectId("5ba@adfacfd31f948ed7e") })
+postsColl.deleteOne({ _id: ObjectId("5ba@adfacfd31f948ed7e") })
+https://docs.mongodb.com/manual/core/transactions/
+
+
+
+
+
 
 
 
