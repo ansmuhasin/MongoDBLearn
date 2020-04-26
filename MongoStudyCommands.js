@@ -347,7 +347,7 @@ db.dropDatabase()
 //* and then finds the related documents it can return this,
 //* so it's this direct access that mongodb can use here and that speeds up your queries.
 
-db.contacts.explain("exexutionStatus").find({ age: { $gt: 30 } })   //# by using explain we can know how the execution went
+db.contacts.explain("executionStatus").find({ age: { $gt: 30 } })   //# by using explain we can know how the execution went
 
 db.contacts.createIndex({ "dob.age": 1 }) //# we can add indexes using this format. 1 for ascending and -1 for descending
 db.contacts.dropIndex({ "dob.age": 1 }) //# we can drop indexes using this format. 1 for ascending and -1 for descending
@@ -364,7 +364,7 @@ db.contacts.getIndexes() //# this will give information about the indexes
 //# _id is a auto created index by mongo
 
 //* we can create a unique value index as well (like _id)
-db.contacts.explain().find({ email: 1 }, { unique: true })   //#  here we make the field unique, so that the value cannot repeat
+db.contacts.createIndex({ email: 1 }, { unique: true })   //#  here we make the field unique, so that the value cannot repeat
 db.contacts.createIndex({ "dob.age": 1 }, { partialFilterExpression: { "dob.age": { $gt: 60 } } }) //# we can again narrow down the index by some values, but to use this index while finding, we still need to mention the search criteria.
 https://docs.mongodb.com/manual/core/index-partial/
 //* if we want to add unique index to non nullable values, we can do it
@@ -464,7 +464,7 @@ db.persons.aggregate([
 db.persons.aggregate([{ $project: { _id: 0, gender: 1, fullName: { $concat: [{ $toUpper: "$firstName" }, " ", { $toUpper: "$lastName" }] } } }]).pretty() //# we can convert to uppercase and concatinate
 
 db.persons.aggregate([{ $project: { _id: 0, gender: 1, fullName: { $concat: [{ $toUpper: { $substrCP: ["$firstName", 1, 0] } }, " ", { $toUpper: { $substrCP: ["$lastName", 0, 1] } }, { $strLenCP: "$firstName" }] } } }])
-//#                                       substring, we can take specific substring↑      starting point ↑  ↑no of chrector                         ↑ to find the length of the text
+//#                                                   substring, we can take specific substring↑      starting point ↑  ↑no of chrector                         ↑ to find the length of the text
 https://docs.mongodb.com/manual/reference/operator/aggregation/project/
 
 db.persons.aggregate([
